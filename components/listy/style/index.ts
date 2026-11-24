@@ -89,6 +89,16 @@ const genListyStyle: GenerateStyle<ListyToken, CSSObject> = (token) => {
         position: 'relative',
       },
 
+      // Virtual mode only: the custom scrollbar is an absolutely positioned
+      // sibling of the holder at the root's edge (8px wide/tall). Reserve its
+      // size on the holder so it does not cover the item's own padding, which
+      // would leave less content-to-scrollbar room than the non-virtual mode.
+      // https://github.com/ant-design/ant-design/issues/59641
+      [`${componentCls}-holder`]: {
+        paddingInlineEnd: 8,
+        paddingBlockEnd: 8,
+      },
+
       [`${componentCls}-scrollbar`]: {
         zIndex: 1,
         cursor: 'pointer',
