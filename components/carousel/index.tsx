@@ -126,6 +126,31 @@ const Carousel = React.forwardRef<CarouselRef, CarouselProps>((props, ref) => {
     }
   }, [initialSlide, isRTL]);
 
+  // `aria-hidden` slides must not contain focusable elements (WCAG SC 4.1.2).
+  // react-slick only toggles `aria-hidden`, so mirror it with `inert` to also
+  // remove hidden slides (and clones) from the tab order.
+  // https://github.com/ant-design/ant-design/issues/59805
+  React.useEffect(() => {
+    const root = nativeElementRef.current;
+    if (!root) {
+      return;
+    }
+    const syncInert = () => {
+      root.querySelectorAll<HTMLElement>('.slick-slide').forEach((slide) => {
+        slide.toggleAttribute('inert', slide.getAttribute('aria-hidden') === 'true');
+      });
+    };
+    syncInert();
+    const observer = new MutationObserver(syncInert);
+    observer.observe(root, {
+      subtree: true,
+      attributes: true,
+      childList: true,
+      attributeFilter: ['aria-hidden'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   // ========================== Warn ==========================
   if (process.env.NODE_ENV !== 'production') {
     const warning = devUseWarning('Carousel');
@@ -181,8 +206,16 @@ const Carousel = React.forwardRef<CarouselRef, CarouselProps>((props, ref) => {
         dots={enableDots}
         dotsClass={dsClass}
         arrows={arrows}
-        prevArrow={prevArrow ?? <ArrowButton aria-label={isRTL ? contextLocale.nextSlide : contextLocale.prevSlide} />}
-        nextArrow={nextArrow ?? <ArrowButton aria-label={isRTL ? contextLocale.prevSlide : contextLocale.nextSlide} />}
+        prevArrow={
+          prevArrow ?? (
+            <ArrowButton aria-label={isRTL ? contextLocale.nextSlide : contextLocale.prevSlide} />
+          )
+        }
+        nextArrow={
+          nextArrow ?? (
+            <ArrowButton aria-label={isRTL ? contextLocale.prevSlide : contextLocale.nextSlide} />
+          )
+        }
         draggable={draggable}
         verticalSwiping={mergedVertical}
         autoplaySpeed={autoplaySpeed}

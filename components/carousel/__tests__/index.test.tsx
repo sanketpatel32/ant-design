@@ -465,4 +465,38 @@ describe('Carousel', () => {
       expect(container.querySelectorAll('.slick-dots li')[0]).toHaveClass('slick-active');
     });
   });
+
+  // https://github.com/ant-design/ant-design/issues/59805
+  it('should mirror aria-hidden with inert on slides', async () => {
+    const assertInert = (container: HTMLElement) => {
+      const slides = container.querySelectorAll<HTMLElement>('.slick-slide');
+      expect(slides.length).toBeGreaterThan(0);
+      expect(container.querySelectorAll('.slick-slide[aria-hidden="true"]').length).toBeGreaterThan(
+        0,
+      );
+      slides.forEach((slide) => {
+        expect(slide.hasAttribute('inert')).toBe(slide.getAttribute('aria-hidden') === 'true');
+      });
+    };
+
+    const { container } = render(
+      <Carousel arrows>
+        <div>
+          <button type="button">1</button>
+        </div>
+        <div>
+          <button type="button">2</button>
+        </div>
+        <div>
+          <button type="button">3</button>
+        </div>
+      </Carousel>,
+    );
+
+    assertInert(container);
+
+    fireEvent.click(container.querySelector<HTMLButtonElement>('.slick-next')!);
+    await waitFakeTimer();
+    assertInert(container);
+  });
 });
