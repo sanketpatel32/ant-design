@@ -56,6 +56,13 @@ const genCarouselStyle: GenerateStyle<CarouselToken, CSSObject> = (token) => {
     [componentCls]: {
       ...resetComponent(token),
 
+      // Allow the carousel to shrink inside flex/grid layouts:
+      // the slick track's intrinsic size is the total slides width,
+      // which would otherwise blow out the container.
+      // https://github.com/ant-design/ant-design/issues/59664
+      minWidth: 0,
+      minHeight: 0,
+
       '.slick-slider': {
         position: 'relative',
         display: 'block',
